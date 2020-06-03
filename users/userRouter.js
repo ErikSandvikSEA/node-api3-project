@@ -101,7 +101,7 @@ router.delete('/:id', validateUserId, (req, res) => {
     })  
 });
 
-router.put('/:id', validateUserId, validateUser, (req, res) => {
+router.put('/:id', validateUserId, requiredProperty("name"), (req, res) => {
   const updatedUser = req.body
   const user = req.user
   Users.update(user.id, updatedUser)
@@ -170,8 +170,14 @@ function validatePost(req, res, next) {
   }
 }
 
-function requiredProperties(properties) {
-  
+function requiredProperty(property) {
+  return function(req, res, next){
+    if(!req.body[property]) {
+      res.status(400).json({ message: `Needs to have a ${property} property` })
+    } else {
+      next()
+    }
+  }
 }
 
 module.exports = router;
