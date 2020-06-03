@@ -1,5 +1,6 @@
 const express = require('express');
 const Users = require('./userDb')
+const Posts = require('../posts/postDb')
 
 const router = express.Router();
 
@@ -14,12 +15,32 @@ router.post('/', validateUser, (req, res) => {
       .catch(err => {
         console.log(error)
         res.status(500).json({
+          err
         })
       })
 });
 
-router.post('/:id/posts', validateUserId, (req, res) => {
-  
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+  const userId = req.params.id
+  const postToAdd = {
+    ...req.newPost,
+    user_id: userId
+  }
+
+  Posts.insert(postToAdd)
+    .then(postedPost => {
+      res.status(200).json({
+        message: 'Successfully added post',
+        brandNewPost: postedPost
+      })
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500).json({
+        error,
+        message: 'Error occurred while posting'
+      })
+    })
 });
 
 router.get('/', (req, res) => {
@@ -80,7 +101,7 @@ router.delete('/:id', validateUserId, (req, res) => {
     })  
 });
 
-router.put('/:id', (validateUserId, validateUserId), (req, res) => {
+router.put('/:id', validateUserId, validateUser, (req, res) => {
   const updatedUser = req.body
   const user = req.user
   Users.update(user.id, updatedUser)
@@ -129,16 +150,28 @@ function validateUserId(req, res, next) {
 function validateUser(req, res, next) {
   const newUser = req.body
   if(!newUser){
-    res.status(404).json({ message: "missing user data" })
+    res.status(400).json({ message: "missing user data" })
   } else if(!newUser.name){
-    res.status(404).json({ message: "missing required name field" })
+    res.status(400).json({ message: "missing required name field" })
   } else {
     next()
   }
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+  const newPost = req.body
+  if(!newPost){
+    res.status(400).json({message: 'missing post data'})
+  } else if (!newPost.text){
+    res.status(400).json({ message: 'missing required text field' })
+  } else {
+    req.newPost = newPost
+    next()
+  }
+}
+
+function requiredProperties(properties) {
+  
 }
 
 module.exports = router;
