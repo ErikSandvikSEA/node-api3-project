@@ -4,14 +4,22 @@ const Users = require('./userDb')
 const router = express.Router();
 
 router.post('/', validateUser, (req, res) => {
-  res.status(201).json({
-    message: 'New user posted!',
-    user: req.postedNewUser,
-  })
+  const newUser = req.body
+  Users.insert(newUser)
+      .then(postedNewUser => {
+        res.status(201).json({
+          postedNewUser
+        })
+      })
+      .catch(err => {
+        console.log(error)
+        res.status(500).json({
+        })
+      })
 });
 
 router.post('/:id/posts', validateUserId, (req, res) => {
-  // do your magic!
+  
 });
 
 router.get('/', (req, res) => {
@@ -34,15 +42,68 @@ router.get('/:id', validateUserId, (req, res) => {
 });
 
 router.get('/:id/posts', validateUserId, (req, res) => {
-  // do your magic!
+  const user = req.user
+  Users.getUserPosts(user.id)
+    .then(posts => {
+      res.status(200).json(posts)
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500).json({
+        error: error,
+        message: "Could not retrieve posts"
+      })
+    })
 });
 
 router.delete('/:id', validateUserId, (req, res) => {
-  // do your magic!
+  const user = req.user
+  Users.remove(user.id)
+    .then(numberOfDeletedUsers => {
+      if(numberOfDeletedUsers === 1){
+        res.status(200).json({
+          numberOfDeletedUsers: numberOfDeletedUsers,
+          message: 'User successfully deleted'
+        })
+      } else {
+        res.status(500).json({
+          message: 'Error occurred while deleting'
+        })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500).json({
+        message: 'Could not delete User',
+        error: error
+      })
+    })  
 });
 
-router.put('/:id', validateUserId, (req, res) => {
-  // do your magic!
+router.put('/:id', (validateUserId, validateUserId), (req, res) => {
+  const updatedUser = req.body
+  const user = req.user
+  Users.update(user.id, updatedUser)
+    .then(numberOfUpdatedUsers => {
+      if(numberOfUpdatedUsers === 1){
+        res.status(200).json({
+          numberOfUpdatedUsers: numberOfUpdatedUsers,
+          updates: updatedUser,
+          message: 'User successfully updated'
+        })
+      } else {
+        res.status(500).json({
+          message: 'Error occurred while updating'
+        })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500).json({
+        message: 'Could not update User',
+        error: error
+      })
+    })
 });
 
 //custom middleware
@@ -72,16 +133,7 @@ function validateUser(req, res, next) {
   } else if(!newUser.name){
     res.status(404).json({ message: "missing required name field" })
   } else {
-    Users.insert(newUser)
-      .then(postedNewUser => {
-        req.postedNewUser = postedNewUser
-        next()
-      })
-      .catch(err => {
-        console.log(error)
-        res.status(500).json({
-        })
-      })
+    next()
   }
 }
 
