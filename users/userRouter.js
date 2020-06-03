@@ -3,11 +3,14 @@ const Users = require('./userDb')
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
-  // do your magic!
+router.post('/', validateUser, (req, res) => {
+  res.status(201).json({
+    message: 'New user posted!',
+    user: req.postedNewUser,
+  })
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, (req, res) => {
   // do your magic!
 });
 
@@ -30,15 +33,15 @@ router.get('/:id', validateUserId, (req, res) => {
   res.status(200).json(req.user);
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res) => {
   // do your magic!
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUserId, (req, res) => {
   // do your magic!
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res) => {
   // do your magic!
 });
 
@@ -63,7 +66,23 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+  const newUser = req.body
+  if(!newUser){
+    res.status(404).json({ message: "missing user data" })
+  } else if(!newUser.name){
+    res.status(404).json({ message: "missing required name field" })
+  } else {
+    Users.insert(newUser)
+      .then(postedNewUser => {
+        req.postedNewUser = postedNewUser
+        next()
+      })
+      .catch(err => {
+        console.log(error)
+        res.status(500).json({
+        })
+      })
+  }
 }
 
 function validatePost(req, res, next) {
