@@ -1,14 +1,16 @@
 const express = require('express');
 
 const postRouter = require('./posts/postRouter')
+const userRouter = require('./users/userRouter')
 
 const server = express();
 
 //custom middleware
 
 function logger(req, res, next) {
-  const date = new Date().getSeconds()
-  console.log(`|| Method: ${req.method} `, `|| URL: http://localhost:6000${req.url} `, `|| Timestamp: ${date} seconds`)
+  const seconds = new Date().getSeconds()
+  const minutes = new Date().getMinutes()
+  console.log(`|| Method: ${req.method} `, `|| URL: http://localhost:6000${req.url} `, `|| Timestamp: ${minutes} minutes and ${seconds} seconds`)
   next()
 }
 
@@ -16,6 +18,7 @@ function logger(req, res, next) {
 server.use(logger)
 server.use(express.json())
 server.use('/api/posts', postRouter)
+server.use('/api/users', userRouter)
 
 server.get('/', (req, res) => {
   res.send(`<h2>Let's write some middleware!</h2>`);
