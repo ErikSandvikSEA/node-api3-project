@@ -20,11 +20,11 @@ router.post('/', validateUser, (req, res) => {
       })
 });
 
-router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+router.post('/:id/posts', validateUserId, requiredProperty('text'), (req, res) => {
   const userId = req.params.id
   const postToAdd = {
-    ...req.newPost,
-    user_id: userId
+    ...req.body,
+    user_id: Number(userId)
   }
 
   Posts.insert(postToAdd)
