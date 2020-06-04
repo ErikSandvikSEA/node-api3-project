@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet')
 
 const postRouter = require('./posts/postRouter')
 const userRouter = require('./users/userRouter')
@@ -30,13 +31,19 @@ const requiresPassword = (req, res, next) => {
 }
 
 //global middleware
-server.use(requiresPassword)
+// server.use(requiresPassword)
+server.use(helmet())
 server.use(logger)
 server.use(express.json())
 server.use('/api/posts', postRouter)
 server.use('/api/users', userRouter)
 
 server.get('/', (req, res) => {
+  res.status(200).json({
+    environment: process.env.NODE_ENV,
+    port: process.env.PORT,
+    greeting: process.env.GREETING
+  })
   res.send(`<h2>Let's write some middleware!</h2>`);
 });
 
