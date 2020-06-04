@@ -14,7 +14,23 @@ function logger(req, res, next) {
   next()
 }
 
+const requiresPassword = (req, res, next) => {
+  const password = req.headers.password
+  if(!password) {
+    res.status(400).json({
+      message: 'Password is required',
+    })
+  } else if (password !== 'asdf'){
+    res.status(401).json({
+      message: 'Wrong Password, sry'
+    })
+  } else {
+    next()
+  }
+}
+
 //global middleware
+server.use(requiresPassword)
 server.use(logger)
 server.use(express.json())
 server.use('/api/posts', postRouter)
